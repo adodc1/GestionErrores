@@ -18,8 +18,8 @@ public class RegistroLog {
 	/**
 	 * <p>
 	 * Inicializa un descriptor de fichero para escribir en un conjunto de archivos.
-	 * Cuando (aproximadamente) se haya escrito el límite indicado en un archivo, se
-	 * abrirá otro archivo. La salida recorrerá un conjunto de archivos volviendo al
+	 * Cuando (aproximadamente) se haya escrito el limite indicado en un archivo, se
+	 * abrira otro archivo. La salida recorrera un conjunto de archivos volviendo al
 	 * primero una vez finalizado el grupo de ficheros.
 	 * </p>
 	 * <p>
@@ -33,7 +33,7 @@ public class RegistroLog {
 	 */
 	public static void setupLogger(String fileName, int fileSize, int fileAmount) {
 
-		// Desactiva la consola de logs para que sólo se grave en el fichero.
+		// Desactiva la consola de logs para que solo se grave en el fichero.
 		LogManager.getLogManager().reset();
 
 		try {
@@ -49,16 +49,15 @@ public class RegistroLog {
 
 	/**
 	 * <p>
-	 * Registrar un mensaje informativo, especificando la clase y el método de
-	 * origen, sin argumentos.
+	 * Registrar un mensaje informativo, especificando la clase y el metodo de
+	 * origen.
 	 * </p>
 	 * 
-	 * @param clase   : String :nombre de la clase que emitió la solicitud de
-	 *                registro
-	 * @param metodo  : String : nombre del método que emitió la solicitud de
+	 * @param clase   : String : Nombre de la <b>clase</b> que emitio la solicitud
+	 *                de registro
+	 * @param metodo  : String : Nombre del <b>metodo</b> que emitio la solicitud de
 	 *                registro.
-	 * @param mensaje : String : La cadena message (o una clave en el catálogo de
-	 *                mensajes)
+	 * @param mensaje : String : La cadena message.
 	 */
 	public static void infoLogger(String clase, String metodo, String mensaje) {
 		log.logp(MiLevel.INFO, clase, metodo, mensaje);
@@ -66,16 +65,14 @@ public class RegistroLog {
 
 	/**
 	 * <p>
-	 * Registrar un mensaje de error, especificando la clase y el método de origen,
-	 * sin argumentos.
+	 * Registrar un mensaje de error, especificando la clase y el método de origen.
 	 * </p>
 	 * 
-	 * @param clase   : String :nombre de la clase que emitió la solicitud de
-	 *                registro
-	 * @param metodo  : String : nombre del método que emitió la solicitud de
+	 * @param clase   : String : Nombre de la <b>clase</b> que emitió la solicitud
+	 *                de registro
+	 * @param metodo  : String : Nombre del <b>metodo</b> que emitió la solicitud de
 	 *                registro.
-	 * @param mensaje : String : La cadena message (o una clave en el catálogo de
-	 *                mensajes)
+	 * @param mensaje : String : La cadena message.
 	 */
 	public static void errorLogger(String clase, String metodo, String mensaje) {
 		log.logp(MiLevel.ERR, clase, metodo, mensaje);
@@ -84,14 +81,14 @@ public class RegistroLog {
 	/**
 	 * <p>
 	 * Registrar un mensaje de error de tipo Throwable, especificando la clase y el
-	 * método de origen.
+	 * metodo de origen.
 	 * </p>
 	 * 
-	 * @param clase   : String :nombre de la clase que emitió la solicitud de
+	 * @param clase   : String :nombre de la <b>clase</b> que emitio la solicitud de
 	 *                registro
-	 * @param metodo  : String : nombre del método que emitió la solicitud de
+	 * @param metodo  : String : nombre del <b>metodo</b> que emitio la solicitud de
 	 *                registro.
-	 * @param mensaje : Throwable : La cadena message (o una clave en el catálogo de
+	 * @param mensaje : Throwable : La cadena message (o una clave en el catalogo de
 	 *                mensajes)
 	 */
 	public static void errorLogger(String clase, String metodo, Throwable mensaje) {
@@ -100,15 +97,15 @@ public class RegistroLog {
 
 	/**
 	 * <p>
-	 * Registrar un mensaje de tipo Warning, especificando la clase y el método de origen.
+	 * Registrar un mensaje de tipo Warning, especificando la clase y el metodo de
+	 * origen.
 	 * </p>
 	 * 
-	 * @param clase   : String :nombre de la clase que emitió la solicitud de
+	 * @param clase   : String :nombre de la <b>clase</b> que emitio la solicitud de
 	 *                registro
-	 * @param metodo  : String : nombre del método que emitió la solicitud de
+	 * @param metodo  : String : nombre del metodo que emitió la solicitud de
 	 *                registro.
-	 * @param mensaje : String : La cadena message (o una clave en el catálogo de
-	 *                mensajes)
+	 * @param mensaje : String : La cadena message
 	 */
 	public static void warningLogger(String clase, String metodo, String mensaje) {
 		log.logp(MiLevel.WARNING, clase, metodo, mensaje);
@@ -116,15 +113,15 @@ public class RegistroLog {
 
 	/**
 	 * <p>
-	 * Registrar un mensaje de tipo Warning, especificando la clase y el método de origen.
+	 * Registrar un mensaje de tipo Warning, especificando la clase y el metodo de
+	 * origen.
 	 * </p>
 	 * 
-	 * @param clase   : String :nombre de la clase que emitió la solicitud de
+	 * @param clase   : String :nombre de la <b>clase</b> que emitio la solicitud de
 	 *                registro
-	 * @param metodo  : String : nombre del método que emitió la solicitud de
+	 * @param metodo  : String : nombre del método que emitio la solicitud de
 	 *                registro.
-	 * @param mensaje : Throwable : La cadena message (o una clave en el catálogo de
-	 *                mensajes)
+	 * @param mensaje : Throwable : La cadena message.
 	 */
 	public static void warningLogger(String clase, String metodo, Throwable mensaje) {
 		log.logp(MiLevel.WARNING, clase, metodo, stackTrace2String(mensaje));
@@ -195,7 +192,7 @@ class MiFormato extends Formatter {
 class MiLevel extends Level {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	public static MiLevel ERR = new MiLevel("ERR", 950);
 	public static MiLevel WARNING = new MiLevel("WRN", 900);
 	public static MiLevel INFO = new MiLevel("INF", 800);
