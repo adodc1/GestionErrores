@@ -1,1 +1,1 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"gestionErrores","l":"LogException"},{"p":"gestionErrores","l":"RegistroLog"}];updateSearchResults();
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"gestionErrores","l":"LogException"},{"p":"gestionErrores","l":"RegistroLog"},{"p":"gestionErrores.controlVersiones","l":"Version"}];updateSearchResults();
