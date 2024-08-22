@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="javadoc">
-    <target name="javadoc">
-        <javadoc access="public" author="true" classpath="." destdir="doc" nodeprecated="true" nodeprecatedlist="true" noindex="false" nonavbar="false" notree="false" packagenames="gestionErrores,gestionErrores.controlVersiones" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
-            <link href="file:/C:/Users/um09165/eclipse-workspace_GestionErrores/GestionErrores/doc/"/>
-        </javadoc>
-    </target>
-</project>
