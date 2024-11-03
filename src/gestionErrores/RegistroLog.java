@@ -4,16 +4,42 @@ import java.io.*;
 import java.text.*;
 import java.util.logging.*;
 import java.util.logging.Formatter;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * <p>
  * Libreria dedicada a la gestion de logs.
- * </p>
  * 
  * @author Dani
  * @version 1.0
  */
 public class RegistroLog {
+
+	private static final Logger log = Logger.getLogger(RegistroLog.class.getName());
+	private static FileHandler fichero;
+
+	private static BlockingQueue<MiLog> logQueue = new LinkedBlockingQueue<MiLog>();
+	private static Thread logThread;
+
+	static {
+		System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %1$tL <%4$-3s> %5$s %n");
+
+		// Iniciar el hilo dedicado para procesar los logs
+		logThread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					while (true) {
+						MiLog logMessage = logQueue.take();
+						log.logp(logMessage.getNivel(), logMessage.getClase(), logMessage.getMetodo(),
+								logMessage.getMensaje());
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		});
+		logThread.start();
+	}
 
 	/**
 	 * <p>
@@ -32,26 +58,26 @@ public class RegistroLog {
 	 *                   volver al primer fichero.
 	 */
 	public static void setupLogger(String fileName, int fileSize, int fileAmount) {
-
 		// Desactiva la consola de logs para que solo se grave en el fichero.
 		LogManager.getLogManager().reset();
-
 		try {
 			fichero = new FileHandler(fileName, fileSize, fileAmount, true);
 			fichero.setFormatter(new MiFormato());
 			log.addHandler(fichero);
 
 		} catch (IOException ex) {
-			Logger.getLogger(RegistroLog.class.getName()).log(Level.SEVERE, null, ex);
-		}
+//			Logger.getLogger(RegistroLog.class.getName()).log(Level.SEVERE, null, ex);
+			log.log(Level.SEVERE, null, ex);
 
+		} catch (SecurityException ex) {
+//			Logger.getLogger(RegistroLog.class.getName()).log(Level.SEVERE, null, ex);
+			log.log(Level.SEVERE, null, ex);
+		}
 	}
 
 	/**
-	 * <p>
 	 * Registrar un mensaje informativo, especificando la clase y el metodo de
 	 * origen.
-	 * </p>
 	 * 
 	 * @param clase   : String : Nombre de la <b>clase</b> que emitio la solicitud
 	 *                de registro
@@ -59,14 +85,13 @@ public class RegistroLog {
 	 *                registro.
 	 * @param mensaje : String : La cadena message.
 	 */
-	public static void infoLogger(String clase, String metodo, String mensaje) {
-		log.logp(MiLevel.INFO, clase, metodo, mensaje);
+	public synchronized static void infoLogger(String clase, String metodo, String mensaje) {
+//		log.logp(MiLevel.INFO, clase, metodo, mensaje);
+		logQueue.add(new MiLog(MiLevel.INFO, clase, metodo, mensaje));
 	}
 
 	/**
-	 * <p>
 	 * Registrar un mensaje de error, especificando la clase y el método de origen.
-	 * </p>
 	 * 
 	 * @param clase   : String : Nombre de la <b>clase</b> que emitió la solicitud
 	 *                de registro
@@ -74,15 +99,14 @@ public class RegistroLog {
 	 *                registro.
 	 * @param mensaje : String : La cadena message.
 	 */
-	public static void errorLogger(String clase, String metodo, String mensaje) {
-		log.logp(MiLevel.ERR, clase, metodo, mensaje);
+	public synchronized static void errorLogger(String clase, String metodo, String mensaje) {
+//		log.logp(MiLevel.ERR, clase, metodo, mensaje);
+		logQueue.add(new MiLog(MiLevel.ERR, clase, metodo, mensaje));
 	}
 
 	/**
-	 * <p>
 	 * Registrar un mensaje de error de tipo Throwable, especificando la clase y el
 	 * metodo de origen.
-	 * </p>
 	 * 
 	 * @param clase   : String :nombre de la <b>clase</b> que emitio la solicitud de
 	 *                registro
@@ -91,15 +115,14 @@ public class RegistroLog {
 	 * @param mensaje : Throwable : La cadena message (o una clave en el catalogo de
 	 *                mensajes)
 	 */
-	public static void errorLogger(String clase, String metodo, Throwable mensaje) {
-		log.logp(MiLevel.ERR, clase, metodo, stackTrace2String(mensaje));
+	public synchronized static void errorLogger(String clase, String metodo, Throwable mensaje) {
+//		log.logp(MiLevel.ERR, clase, metodo, stackTrace2String(mensaje));
+		logQueue.add(new MiLog(MiLevel.ERR, clase, metodo, stackTrace2String(mensaje)));
 	}
 
 	/**
-	 * <p>
 	 * Registrar un mensaje de tipo Warning, especificando la clase y el metodo de
 	 * origen.
-	 * </p>
 	 * 
 	 * @param clase   : String :nombre de la <b>clase</b> que emitio la solicitud de
 	 *                registro
@@ -107,15 +130,14 @@ public class RegistroLog {
 	 *                registro.
 	 * @param mensaje : String : La cadena message
 	 */
-	public static void warningLogger(String clase, String metodo, String mensaje) {
-		log.logp(MiLevel.WARNING, clase, metodo, mensaje);
+	public synchronized static void warningLogger(String clase, String metodo, String mensaje) {
+//		log.logp(MiLevel.WARNING, clase, metodo, mensaje);
+		logQueue.add(new MiLog(MiLevel.WARNING, clase, metodo, mensaje));
 	}
 
 	/**
-	 * <p>
 	 * Registrar un mensaje de tipo Warning, especificando la clase y el metodo de
 	 * origen.
-	 * </p>
 	 * 
 	 * @param clase   : String :nombre de la <b>clase</b> que emitio la solicitud de
 	 *                registro
@@ -123,15 +145,14 @@ public class RegistroLog {
 	 *                registro.
 	 * @param mensaje : Throwable : La cadena message.
 	 */
-	public static void warningLogger(String clase, String metodo, Throwable mensaje) {
-		log.logp(MiLevel.WARNING, clase, metodo, stackTrace2String(mensaje));
+	public synchronized static void warningLogger(String clase, String metodo, Throwable mensaje) {
+//		log.logp(MiLevel.WARNING, clase, metodo, stackTrace2String(mensaje));
+		logQueue.add(new MiLog(MiLevel.WARNING, clase, metodo, stackTrace2String(mensaje)));
 	}
 
 	/**
-	 * <p>
 	 * Imprime este objeto Throwable y su seguimiento hacia el descriptor de
 	 * impresión especificado.
-	 * </p>
 	 * 
 	 * @param mensaje : Throwable : objeto que contiene la ruta y mensaje.
 	 * @return String : Mensaje en forma de texto.
@@ -143,28 +164,52 @@ public class RegistroLog {
 	}
 
 	/**
-	 * <p>
 	 * Cierra el descriptor de ficheros.
-	 * </p>
 	 */
 	public static void closeLogger() {
 		if (fichero != null) {
 			fichero.close();
 		}
 	}
-
-	private static final Logger log = Logger.getLogger(RegistroLog.class.getName());
-	private static FileHandler fichero;
-	static {
-		System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %1$tL <%4$-3s> %5$s %n");
-	}
-
 }
 
 /**
- * <p>
+ * @author dmuelas1
+ * @version 1.0
+ *
+ */
+class MiLog {
+	private final MiLevel nivel;
+	private final String clase;
+	private final String metodo;
+	private final String mensaje;
+
+	public MiLog(MiLevel nivel, String clase, String metodo, String mensaje) {
+		this.nivel = nivel;
+		this.clase = clase;
+		this.metodo = metodo;
+		this.mensaje = mensaje;
+	}
+
+	public MiLevel getNivel() {
+		return nivel;
+	}
+
+	public String getClase() {
+		return clase;
+	}
+
+	public String getMetodo() {
+		return metodo;
+	}
+
+	public String getMensaje() {
+		return mensaje;
+	}
+}
+
+/**
  * Fromatea la fecha y hora del mensaje de error.
- * </p>
  * 
  * @author Dani
  * @version 1.0
@@ -182,9 +227,7 @@ class MiFormato extends Formatter {
 }
 
 /**
- * <p>
  * Establece nuevas categorias para los niveles de fallos.
- * </p>
  * 
  * @author Dani
  * @version 1.0
@@ -199,10 +242,8 @@ class MiLevel extends Level {
 	public static MiLevel DEBUG = new MiLevel("DEBUG", 710);
 
 	/**
-	 * <p>
 	 * Crea un nivel con un nombre y un valor entero determinados y un nombre de
 	 * recurso de localización determinados.
-	 * </p>
 	 * 
 	 * @param name               : String : El nombre del nivel.
 	 * @param value              : int : Un valor entero para el nivel.
@@ -215,10 +256,8 @@ class MiLevel extends Level {
 	}
 
 	/**
-	 * <p>
 	 * Crea un nivel con un nombre y un valor entero determinados y un nombre de
 	 * recurso de localización determinados.
-	 * </p>
 	 * 
 	 * @param name  : String : El nombre del nivel.
 	 * @param value : int : Un valor entero para el nivel.
