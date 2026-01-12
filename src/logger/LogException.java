@@ -1,4 +1,4 @@
-package gestionErrores;
+package logger;
 
 /**
  * Excepcion generada por la libreria Log

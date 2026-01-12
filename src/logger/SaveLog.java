@@ -1,7 +1,9 @@
-package gestionErrores;
+package logger;
 
 import java.io.*;
 import java.text.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.*;
 import java.util.logging.Formatter;
 
@@ -13,7 +15,15 @@ import java.util.logging.Formatter;
  * @author Dani
  * @version 1.0
  */
-public class RegistroLog {
+public class SaveLog {
+
+	private static final Logger log = Logger.getLogger(SaveLog.class.getName());
+	private static FileHandler fichero;
+	private static final BlockingQueue<LogData> buffer = new LinkedBlockingQueue<LogData>(10);
+
+	static {
+		System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %1$tL <%4$-3s> %5$s %n");
+	}
 
 	/**
 	 * <p>
@@ -41,8 +51,29 @@ public class RegistroLog {
 			fichero.setFormatter(new MiFormato());
 			log.addHandler(fichero);
 
+			Thread consumer = new Thread(new Runnable() {
+				public void run() {
+					try {
+						while (true) {
+							LogData data = buffer.take();
+							if (data.getLevel() != null) {
+								log.logp(data.getLevel(), data.getClase(), data.getMetodo(), data.getMensaje());
+							} else {
+								fichero.close();
+								break;
+							}
+						}
+
+					} catch (InterruptedException e) {
+
+					}
+				}
+			});
+
+			consumer.start();
+
 		} catch (IOException ex) {
-			Logger.getLogger(RegistroLog.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(SaveLog.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
 	}
@@ -60,7 +91,7 @@ public class RegistroLog {
 	 * @param mensaje : String : La cadena message.
 	 */
 	public static void infoLogger(String clase, String metodo, String mensaje) {
-		log.logp(MiLevel.INFO, clase, metodo, mensaje);
+		setLoggerInfo(MiLevel.INFO, clase, metodo, mensaje);
 	}
 
 	/**
@@ -75,7 +106,7 @@ public class RegistroLog {
 	 * @param mensaje : String : La cadena message.
 	 */
 	public static void errorLogger(String clase, String metodo, String mensaje) {
-		log.logp(MiLevel.ERR, clase, metodo, mensaje);
+		setLoggerInfo(MiLevel.ERR, clase, metodo, mensaje);
 	}
 
 	/**
@@ -92,7 +123,7 @@ public class RegistroLog {
 	 *                mensajes)
 	 */
 	public static void errorLogger(String clase, String metodo, Throwable mensaje) {
-		log.logp(MiLevel.ERR, clase, metodo, stackTrace2String(mensaje));
+		setLoggerInfo(MiLevel.ERR, clase, metodo, mensaje);
 	}
 
 	/**
@@ -108,7 +139,7 @@ public class RegistroLog {
 	 * @param mensaje : String : La cadena message
 	 */
 	public static void warningLogger(String clase, String metodo, String mensaje) {
-		log.logp(MiLevel.WARNING, clase, metodo, mensaje);
+		setLoggerInfo(MiLevel.WARNING, clase, metodo, mensaje);
 	}
 
 	/**
@@ -124,7 +155,21 @@ public class RegistroLog {
 	 * @param mensaje : Throwable : La cadena message.
 	 */
 	public static void warningLogger(String clase, String metodo, Throwable mensaje) {
-		log.logp(MiLevel.WARNING, clase, metodo, stackTrace2String(mensaje));
+		setLoggerInfo(MiLevel.WARNING, clase, metodo, mensaje);
+	}
+
+	private static synchronized void setLoggerInfo(MiLevel level, String clase, String metodo, Object mensaje) {
+
+		try {
+			if (mensaje instanceof Throwable) {
+				buffer.put(new LogData(level, clase, metodo, stackTrace2String((Throwable) mensaje)));
+
+			} else {
+				buffer.put(new LogData(level, clase, metodo, (String) mensaje));
+			}
+		} catch (InterruptedException e) {
+
+		}
 	}
 
 	/**
@@ -149,14 +194,52 @@ public class RegistroLog {
 	 */
 	public static void closeLogger() {
 		if (fichero != null) {
-			fichero.close();
+			try {
+				buffer.put(new LogData());
+			} catch (InterruptedException e) {
+				
+			}
 		}
 	}
 
-	private static final Logger log = Logger.getLogger(RegistroLog.class.getName());
-	private static FileHandler fichero;
-	static {
-		System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF %1$tT %1$tL <%4$-3s> %5$s %n");
+}
+
+class LogData {
+	private final MiLevel level;
+	private final String clase;
+	private final String metodo;
+	private final String mensaje;
+
+	public LogData(MiLevel level, String clase, String metodo, String mensaje) {
+		super();
+		this.level = level;
+		this.clase = clase;
+		this.metodo = metodo;
+		this.mensaje = mensaje;
+	}
+
+	public LogData() {
+		super();
+		this.level = null;
+		this.clase = null;
+		this.metodo = null;
+		this.mensaje = null;
+	}
+
+	protected MiLevel getLevel() {
+		return level;
+	}
+
+	protected String getClase() {
+		return clase;
+	}
+
+	protected String getMetodo() {
+		return metodo;
+	}
+
+	protected String getMensaje() {
+		return mensaje;
 	}
 
 }
